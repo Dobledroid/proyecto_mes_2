@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modelo de Regresión de Clima</title>
+    <script>
+        function predecirClima(event) {
+            event.preventDefault();
+            const avgHumidity = document.getElementById('avg_humidity').value;
+            const avgDewpoint = document.getElementById('avg_dewpoint').value;
+            const minPressure = document.getElementById('min_pressure').value;
+            const diffPressure = document.getElementById('diff_pressure').value;
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `avg_humidity=${avgHumidity}&avg_dewpoint=${avgDewpoint}&min_pressure=${minPressure}&diff_pressure=${diffPressure}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('resultado').innerText = 'Error: ' + data.error;
+                } else {
+                    document.getElementById('resultado').innerText = 'La predicción de temperatura es: ' + data.prediction.toFixed(2) + ' °F';
+                }
+            })
+            .catch(error => {
+                document.getElementById('resultado').innerText = 'Error en la solicitud.';
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Modelo de Regresión de Clima</h1>
+    <form id="formulario" onsubmit="predecirClima(event)">
+        <label for="avg_humidity">Humedad Promedio (%):</label>
+        <input type="text" id="avg_humidity" name="avg_humidity"><br><br>
+        <label for="avg_dewpoint">Punto de Rocío Promedio (°F):</label>
+        <input type="text" id="avg_dewpoint" name="avg_dewpoint"><br><br>
+        <label for="min_pressure">Presión Mínima:</label>
+        <input type="text" id="min_pressure" name="min_pressure"><br><br>
+        <label for="diff_pressure">Diferencia de Presión:</label>
+        <input type="text" id="diff_pressure" name="diff_pressure"><br><br>
+        <input type="submit" value="Enviar">
+    </form>
+    
+    <p id="resultado"></p>
+</body>
+</html>
