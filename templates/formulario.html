@@ -1,51 +1,129 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Modelo de Regresión de Clima</title>
-    <script>
-        function predecirClima(event) {
-            event.preventDefault();
-            const avgHumidity = document.getElementById('avg_humidity').value;
-            const avgDewpoint = document.getElementById('avg_dewpoint').value;
-            const minPressure = document.getElementById('min_pressure').value;
-            const diffPressure = document.getElementById('diff_pressure').value;
+<html lang="es">
 
-            fetch('/predict', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `avg_humidity=${avgHumidity}&avg_dewpoint=${avgDewpoint}&min_pressure=${minPressure}&diff_pressure=${diffPressure}`,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById('resultado').innerText = 'Error: ' + data.error;
-                } else {
-                    document.getElementById('resultado').innerText = 'La predicción de temperatura es: ' + data.prediction.toFixed(2) + ' °F';
-                }
-            })
-            .catch(error => {
-                document.getElementById('resultado').innerText = 'Error en la solicitud.';
-                console.error('Error:', error);
-            });
-        }
-    </script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelo Predictor de Clima</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap JS (opcional, se puede incluir al final antes del cierre de body) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    /* Estilos adicionales personalizados */
+    .form-container {
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer {
+      background-color: #f8f9fa;
+      padding: 10px;
+      text-align: center;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+
+
 </head>
+
 <body>
-    <h1>Modelo de Regresión de Clima</h1>
-    <form id="formulario" onsubmit="predecirClima(event)">
-        <label for="avg_humidity">Humedad Promedio (%):</label>
-        <input type="text" id="avg_humidity" name="avg_humidity"><br><br>
-        <label for="avg_dewpoint">Punto de Rocío Promedio (°F):</label>
-        <input type="text" id="avg_dewpoint" name="avg_dewpoint"><br><br>
-        <label for="min_pressure">Presión Mínima:</label>
-        <input type="text" id="min_pressure" name="min_pressure"><br><br>
-        <label for="diff_pressure">Diferencia de Presión:</label>
-        <input type="text" id="diff_pressure" name="diff_pressure"><br><br>
-        <input type="submit" value="Enviar">
-    </form>
-    
-    <p id="resultado"></p>
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand">Modelo Predictor de Clima</a>
+    </div>
+  </nav>
+
+  <!-- Contenido principal -->
+  <div class="container mt-5">
+    <div class="form-container">
+      <h2 class="text-center mb-4">Predicción de Temperatura</h2>
+      <form id="formulario" onsubmit="predecirClima(event)">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="avg_humidity" class="form-label">Humedad Promedio (%):</label>
+            <input type="text" class="form-control" id="avg_humidity" name="avg_humidity" required>
+          </div>
+          <div class="col-md-6">
+            <label for="avg_dewpoint" class="form-label">Punto de Rocío Promedio (°F):</label>
+            <input type="text" class="form-control" id="avg_dewpoint" name="avg_dewpoint" required>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="avg_barometer" class="form-label">Barómetro Promedio (in):</label>
+            <input type="text" class="form-control" id="avg_barometer" name="avg_barometer" required>
+          </div>
+          <div class="col-md-6">
+            <label for="max_pressure" class="form-label">Presión Máxima:</label>
+            <input type="text" class="form-control" id="max_pressure" name="max_pressure" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para mostrar el resultado -->
+  <div class="modal fade" id="resultadoModal" tabindex="-1" aria-labelledby="resultadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="resultadoModalLabel">Resultado de la Predicción</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="resultadoTexto" class="text-center"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer mt-3">
+    <p>Modelo Predictor de Clima realizado por Carlos Alberto Hernandez Hernandez</p>
+  </div>
+
+
+  <script>
+    function predecirClima(event) {
+      event.preventDefault();
+      const avgHumidity = document.getElementById('avg_humidity').value;
+      const avgDewpoint = document.getElementById('avg_dewpoint').value;
+      const avgBarometer = document.getElementById('avg_barometer').value;
+      const maxPressure = document.getElementById('max_pressure').value;
+
+      fetch('/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `avg_humidity=${avgHumidity}&avg_dewpoint=${avgDewpoint}&avg_barometer=${avgBarometer}&max_pressure=${maxPressure}`,
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            document.getElementById('resultadoTexto').innerText = 'Error: ' + data.error;
+          } else {
+            document.getElementById('resultadoTexto').innerText = 'La predicción de temperatura es: ' + data.prediction.toFixed(2) + ' °F';
+          }
+          // Mostrar el modal
+          const resultadoModal = new bootstrap.Modal(document.getElementById('resultadoModal'));
+          resultadoModal.show();
+        })
+        .catch(error => {
+          document.getElementById('resultadoTexto').innerText = 'Error en la solicitud.';
+          console.error('Error:', error);
+        });
+    }
+  </script>
 </body>
+
 </html>
